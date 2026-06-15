@@ -1,0 +1,24 @@
+<div id="app">
+  <h2>Кликер</h2>
+  <child-component></child-component>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+  const { createApp, ref } = Vue;
+  const ChildComponent = {
+    template: `
+      <div>
+        <p>Счёт: {{ count }}</p>
+        <button @click="count++">+1</button>
+      </div>
+    `,
+    setup() {
+      const count = ref(0);
+      return { count };
+    }
+  };
+  
+  createApp({
+    components: { ChildComponent }
+  }).mount('#app');
+</script>
