@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vuetify + Vue Router — Кликер</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@5.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@3.3.0/dist/vuetify.min.css" rel="stylesheet">
+    <style>
+        .v-application { background: #f5f5f5; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <v-app>
+            <v-main>
+                <v-container>
+                    <!-- навигация через Vuetify кнопки -->
+                    <v-toolbar flat color="transparent">
+                        <v-toolbar-title>Кликер с роутингом</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-btn variant="text" to="/">Игра</v-btn>
+                        <v-btn variant="text" to="/stats">Статистика</v-btn>
+                    </v-toolbar>
+                    <v-divider class="mb-4"></v-divider>
+                    <router-view></router-view>
+                </v-container>
+            </v-main>
+        </v-app>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue-router@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.3.0/dist/vuetify.min.js"></script>
+    <script>
+        const { createApp, ref } = Vue;
+        const { createRouter, createWebHashHistory } = VueRouter;
+
+        // общее состояние (счётчик)
+        const sharedState = { score: ref(0) };
+
+        // компонент страницы игры (с уведомлением о 10 кликах)
+        const GamePage = {
+            setup() {
+                const showCheer = ref(false);
+                let cheerTimeout = null;
+
+                const increment = () => {
+                    sharedState.score.value++;
+                    if (sharedState.score.value === 10) {
+                        showCheer.value = true;
+                        clearTimeout(cheerTimeout);
+                        cheerTimeout = setTimeout(() => {
+                            showCheer.value = false;
+                        }, 3000);
+                    }
+                };
+                const resetScore = () => {
+                    sharedState.score.value = 0;
+                    showCheer.value = false;
+                    if (cheerTimeout) clearTimeout(cheerTimeout);
+                };
+                return { score: sharedState.score, showCheer, increment, resetScore };
+            },
+            template: `
+                <v-card class="pa-6" elevation="10" rounded="lg">
+                    <v-card-title class="text-h4 text-center">Игра</v-card-title>
+                    <v-card-text class="text-h1 text-center font-weight-black my-4">
+                        {{ score }}
+                    </v-card-text>
+                    <v-card-actions class="justify-center">
+                        <v-btn color="primary" size="large" @click="increment">
+                            Нажать!
+                            <v-icon end icon="mdi-gamepad-variant"></v-icon>
+                        </v-btn>
+                        <v-btn color="error" size="large" @click="resetScore">
+                            Сброс
+                            <v-icon end icon="mdi-reload"></v-icon>
+                        </v-btn>
+                    </v-card-actions>
+                    <v-card-text class="text-center mt-2" v-if="showCheer">
+                        <v-alert type="success" variant="tonal" closable>
+                            Ура! Вы нажали 10 раз!
+                        </v-alert>
+                    </v-card-text>
+                </v-card>
+            `
+        };
+
+        // компонент страницы статистики
+        const StatsPage = {
+            setup() {
+                return { score: sharedState.score };
+            },
+            template: `
+                <v-card class="pa-6" elevation="10" rounded="lg">
+                    <v-card-title class="text-h4 text-center">Статистика</v-card-title>
+                    <v-card-text class="text-center">
+                        <p class="text-h3">{{ score }}</p>
+                        <p class="mt-4" v-if="score >= 10">Молодец! Много нажал.</p>
+                        <p class="mt-4" v-else>Нажми ещё.</p>
+                    </v-card-text>
+                </v-card>
+            `
+        };
+
+        // маршруты
+        const routes = [
+            { path: '/', component: GamePage },
+            { path: '/stats', component: StatsPage }
+        ];
+
+        const router = createRouter({
+            history: createWebHashHistory(),
+            routes
+        });
+
+        // создаём экземпляр Vuetify
+        const vuetify = Vuetify.createVuetify();
+
+        const app = createApp({});
+        app.use(router);
+        app.use(vuetify);
+        app.mount('#app');
+    </script>
+</body>
+</html>
