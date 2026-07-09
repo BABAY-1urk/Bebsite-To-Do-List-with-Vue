@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сервис бронирования ресурсов</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <!-- главная страница -->
+    <div class="main">
+        <div class="central">
+            <img src="img/Group (1).png" alt="Логотип СБР" class="logo">
+            <h1 class="site-title">СБР</h1>
+            <h3 class="site-subtitle">Сервис бронирования<br> ресурсов</h3>
+        </div>
+        <!-- Кнопки вход и регистрация -->
+        <div class="auth-buttons">
+            <button class="btn btn-login" onclick="login()">Вход</button>
+            <button class="btn btn-register" onclick="register()">Регистрация</button>
+        </div>
+        <div class="description">
+            <p>Рыбатекст используется дизайнерами, проектировщиками и фронтендерами, 
+                когда нужно быстро заполнить макеты или прототипы содержимым. 
+                Это тестовый контент, который не должен нести никакого смысла, 
+                лишь показать наличие самого текста или продемонстрировать типографику в деле.</p>
+        </div>
+        <!-- навигация -->
+        <nav class="nav-menu">
+            <img src="img/Group.png" alt="Логотип в навигации" class="nav-logo">
+            <div class="nav-links">
+                <a href="#" class="nav-link">Аппаратура</a>
+                <a href="index.html" class="nav-link active">Люди</a>
+                <a href="space.html" class="nav-link">Пространство</a>
+                <a href="javascript:void(0)" class="nav-link profile-link" id="profile-link" onclick="showProfile()">Профиль</a>
+                <img src="img/3c3d65c74e500a0479ba179c5a276651291f5be8.png" alt="Ваш аватар" class="avatar">
+            </div>
+            <!-- диалог профиля -->
+            <dialog id="profileDialog" class="profile-dialog">
+                <div id="profileContent" class="profile-content"></div>
+                <div style="margin-top:10px;">
+                    <button id="profileActionBtn" class="btn profile-action-btn" onclick="profileAction()"></button>
+                    <button class="btn btn-close" onclick="document.getElementById('profileDialog').close()">Закрыть</button>
+                </div>
+            </dialog>
+        </nav>
+    </div>
+
+    <!-- ОСНОВНОЕ СОДЕРЖИМОЕ: люди слева, календарь и приглашения справа -->
+    <div class="main-content">
+        <!-- левая часть: люди -->
+        <div class="people-section">
+            <!-- поиск -->
+            <div class="search-section">
+                <div class="search-bar">
+                    <input type="text" placeholder="Поиск..." class="search-input">
+                    <button type="submit" class="search-btn"><img src="img/search 1.png"></button>
+                </div>
+                <button class="filter-btn">Фильтр (по алфавиту)</button>
+                <button class="add-btn" onclick="openNewEventModal()">Добавить +</button>
+                
+                <!-- Окно заказа мероприятия -->
+                <dialog id="newEventModal" class="modal">
+                    <div class="modal-content">
+                        <h2 class="modal-title">Новое мероприятие</h2>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="form-label">Название</label>
+                                <input type="text" id="eventName" class="form-control" placeholder="Введите название мероприятия">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Выберите время мероприятия</label>
+                                <div class="time-slots">
+                                    <button class="time-slot" data-time="8.00 - 9.00">8.00 - 9.00</button>
+                                    <button class="time-slot" data-time="09.00 - 10.00">09.00 - 10.00</button>
+                                    <button class="time-slot" data-time="10.00 - 11.00">10.00 - 11.00</button>
+                                    <button class="time-slot" data-time="11.00 - 12.00">11.00 - 12.00</button>
+                                    <button class="time-slot" data-time="12.00 - 13.00">12.00 - 13.00</button>
+                                    <button class="time-slot" data-time="13.00 - 14.00">13.00 - 14.00</button>
+                                    <button class="time-slot" data-time="17.00 - 18.00">17.00 - 18.00</button>
+                                    <button class="time-slot" data-time="18.00 - 19.00">18.00 - 19.00</button>
+                                    <button class="time-slot" data-time="19.00 - 20.00">19.00 - 20.00</button>
+                                </div>
+                                <input type="hidden" id="selectedTime" value="">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Ответственные лица</label>
+                                <select id="responsiblePerson" class="form-control">
+                                    <option value="">Выберите...</option>
+                                    <option value="Иван Иванов">Иван Иванов</option>
+                                    <option value="Анастасия Ремогузина">Анастасия Ремогузина</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Дополнительная информация</label>
+                                <textarea id="extraInfo" class="form-control" placeholder="Дополнительная информация" rows="3" cols="40"></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-primary" onclick="submitNewEvent()">Забронировать</button>
+                            <button class="btn btn-secondary" onclick="closeNewEventModal()">Отменить</button>
+                        </div>
+                    </div>
+                </dialog>
+                <script>
+                    // ------ Модалка нового мероприятия ------
+                    function openNewEventModal() {
+                        document.getElementById('newEventModal').showModal();
+                        document.getElementById('eventName').value = '';
+                        document.getElementById('selectedTime').value = '';
+                        document.getElementById('extraInfo').value = '';
+                        document.getElementById('responsiblePerson').value = '';
+                        document.querySelectorAll('.time-slot').forEach(btn => btn.style.background = '');
+                    }
+
+                    function closeNewEventModal() {
+                        document.getElementById('newEventModal').close();
+                    }
+
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.querySelectorAll('.time-slot').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                document.querySelectorAll('.time-slot').forEach(b => b.style.background = '');
+                                this.style.background = '#d0e6ff';
+                                document.getElementById('selectedTime').value = this.dataset.time;
+                            });
+                        });
+                    });
+
+                    function submitNewEvent() {
+                        const name = document.getElementById('eventName').value.trim();
+                        const time = document.getElementById('selectedTime').value;
+                        const person = document.getElementById('responsiblePerson').value;
+                        const extra = document.getElementById('extraInfo').value.trim();
+
+                        if (!name || !time) {
+                            alert('Заполните название и выберите время!');
+                            return;
+                        }
+
+                        console.log('Новое мероприятие:', { name, time, person, extra });
+                        alert('Мероприятие добавлено (в консоли)');
+                        closeNewEventModal();
+                    }
+                </script>
+            </div>
+            
+            <!-- те самые люди -->
+            <div class="people-grid">
+                <div class="people-column">
+                    <!-- Карточка 1 -->
+                    <div class="person">
+                        <div class="person-photo-wrapper">
+                            <img src="img/Rectangle 7.png" alt="Иван Иванов" class="person-photo">
+                        </div>
+                        <div class="person-name">Иван Иванов</div>
+                        <div class="person-profession">Фотограф</div>
+                        <p class="person-description">Высококачественная видеосъёмка и аэросъёмка: доступные цены, профессиональное оборудование и опытные специалисты</p>
+                        <div class="person-actions">
+                            <button class="btn btn-invite">Пригласить</button>
+                            <button class="btn btn-detail">Подробнее</button>
+                        </div>
+                    </div>
+                    <!-- Карточка 2 -->
+                    <div class="person">
+                        <div class="person-photo-wrapper">
+                            <img src="img/Rectangle 7.png" alt="Иван Иванов" class="person-photo">
+                        </div>
+                        <div class="person-name">Иван Иванов</div>
+                        <div class="person-profession">Фотограф</div>
+                        <p class="person-description">Высококачественная видеосъёмка и аэросъёмка: доступные цены, профессиональное оборудование и опытные специалисты</p>
+                        <div class="person-actions">
+                            <button class="btn btn-invite">Пригласить</button>
+                            <button class="btn btn-detail">Подробнее</button>
+                        </div>
+                    </div>
+                    <!-- Карточка 3 -->
+                    <div class="person">
+                        <div class="person-photo-wrapper">
+                            <img src="img/Rectangle 7.png" alt="Иван Иванов" class="person-photo">
+                        </div>
+                        <div class="person-name">Иван Иванов</div>
+                        <div class="person-profession">Фотограф</div>
+                        <p class="person-description">Высококачественная видеосъёмка и аэросъёмка: доступные цены, профессиональное оборудование и опытные специалисты</p>
+                        <div class="person-actions">
+                            <button class="btn btn-invite">Пригласить</button>
+                            <button class="btn btn-detail">Подробнее</button>
+                        </div>
+                    </div>
+                    <!-- Карточка 4 -->
+                    <div class="person">
+                        <div class="person-photo-wrapper">
+                            <img src="img/Rectangle 7.png" alt="Иван Иванов" class="person-photo">
+                        </div>
+                        <div class="person-name">Иван Иванов</div>
+                        <div class="person-profession">Фотограф</div>
+                        <p class="person-description">Высококачественная видеосъёмка и аэросъёмка: доступные цены, профессиональное оборудование и опытные специалисты</p>
+                        <div class="person-actions">
+                            <button class="btn btn-invite">Пригласить</button>
+                            <button class="btn btn-detail">Подробнее</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="people-column">
+                    <!-- Карточка 5 -->
+                    <div class="person">
+                        <div class="person-photo-wrapper">
+                            <img src="img/Rectangle 7 (1).png" alt="Анастасия Ремогузина" class="person-photo">
+                        </div>
+                        <div class="person-name">Анастасия Ремогузина</div>
+                        <div class="person-profession">Фотограф</div>
+                        <p class="person-description">Высококачественная видеосъёмка и аэросъёмка: доступные цены, профессиональное оборудование и опытные специалисты</p>
+                        <div class="person-actions">
+                            <button class="btn btn-invite">Пригласить</button>
+                            <button class="btn btn-detail">Подробнее</button>
+                        </div>
+                    </div>
+                    <!-- Карточка 6 -->
+                    <div class="person">
+                        <div class="person-photo-wrapper">
+                            <img src="img/Rectangle 7 (1).png" alt="Анастасия Ремогузина" class="person-photo">
+                        </div>
+                        <div class="person-name">Анастасия Ремогузина</div>
+                        <div class="person-profession">Фотограф</div>
+                        <p class="person-description">Высококачественная видеосъёмка и аэросъёмка: доступные цены, профессиональное оборудование и опытные специалисты</p>
+                        <div class="person-actions">
+                            <button class="btn btn-invite">Пригласить</button>
+                            <button class="btn btn-detail">Подробнее</button>
+                        </div>
+                    </div>
+                    <!-- Карточка 7 -->
+                    <div class="person">
+                        <div class="person-photo-wrapper">
+                            <img src="img/Rectangle 7 (1).png" alt="Анастасия Ремогузина" class="person-photo">
+                        </div>
+                        <div class="person-name">Анастасия Ремогузина</div>
+                        <div class="person-profession">Фотограф</div>
+                        <p class="person-description">Высококачественная видеосъёмка и аэросъёмка: доступные цены, профессиональное оборудование и опытные специалисты</p>
+                        <div class="person-actions">
+                            <button class="btn btn-invite">Пригласить</button>
+                            <button class="btn btn-detail">Подробнее</button>
+                        </div>
+                    </div>
+                    <!-- Карточка 8 -->
+                    <div class="person">
+                        <div class="person-photo-wrapper">
+                            <img src="img/Rectangle 7 (1).png" alt="Анастасия Ремогузина" class="person-photo">
+                        </div>
+                        <div class="person-name">Анастасия Ремогузина</div>
+                        <div class="person-profession">Фотограф</div>
+                        <p class="person-description">Высококачественная видеосъёмка и аэросъёмка: доступные цены, профессиональное оборудование и опытные специалисты</p>
+                        <div class="person-actions">
+                            <button class="btn btn-invite">Пригласить</button>
+                            <button class="btn btn-detail">Подробнее</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- правая колонка: календарь и приглашения -->
+        <div class="right-sidebar">
+            <!-- календарь -->
+            <div id="calendar-app" class="calendar">
+                <div class="calendar-header">
+                    <button class="calendar-nav" @click="prevMonth">‹</button>
+                    <h2 class="calendar-month">{{ monthName }} {{ year }}</h2>
+                    <button class="calendar-nav" @click="nextMonth">›</button>
+                </div>
+                <table class="calendar-table" border="1">
+                    <thead>
+                        <tr>
+                            <th class="calendar-weekday">Пн</th>
+                            <th class="calendar-weekday">Вт</th>
+                            <th class="calendar-weekday">Ср</th>
+                            <th class="calendar-weekday">Чт</th>
+                            <th class="calendar-weekday">Пт</th>
+                            <th class="calendar-weekday">Сб</th>
+                            <th class="calendar-weekday">Вс</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(week, idx) in weeks" :key="idx">
+                            <td v-for="(day, id) in week" :key="id" class="calendar-cell" :class="{ empty: !day }">{{ day || '' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- активные приглашения -->
+            <div class="invitations">
+                <h3 class="invitations-title">Активные приглашения</h3>
+                <div class="invitation">
+                    <p class="invitation-title">Съёмки в первомайском</p>
+                    <div class="invitation-details">
+                        <span class="invitation-time">10.00 - 12.00</span>
+                        <span class="invitation-person">Иван Иванов</span>
+                        <span class="invitation-role">Фотограф</span>
+                    </div>
+                    <div class="invitation-actions">
+                        <button class="btn btn-detail">Подробнее</button>
+                        <button class="btn btn-decline">Отклонить</button>
+                    </div>
+                </div>
+                <div class="invitation">
+                    <p class="invitation-title">Съёмки в первомайском</p>
+                    <div class="invitation-details">
+                        <span class="invitation-time">10.00 - 12.00</span>
+                        <span class="invitation-person">Иван Иванов</span>
+                        <span class="invitation-role">Фотограф</span>
+                    </div>
+                    <div class="invitation-actions">
+                        <button class="btn btn-detail">Подробнее</button>
+                        <button class="btn btn-decline">Отклонить</button>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- конец right-sidebar -->
+    </div> <!-- конец main-content -->
+
+    <!-- ОДИН ОБЩИЙ СКРИПТ (регистрация, вход, профиль, календарь) -->
+    <script>
+        //  1. Данные пользователя и функции входа/регистрации 
+        window.userData = {};
+
+        window.register = function() {
+            const firstName = prompt('Введите имя');
+            if (firstName === null) return;
+            const lastName = prompt('Введите фамилию');
+            if (lastName === null) return;
+            const email = prompt('Введите почту');
+            if (email === null) return;
+            window.userData = { firstName, lastName, email };
+            console.log('Зарегистрирован:', window.userData);
+            alert('Регистрация успешна!');
+            if (document.getElementById('profileDialog').open) {
+                updateProfileDialog();
+            }
+        };
+
+        window.login = function() {
+            const fullName = prompt('Введите имя и фамилию (через пробел)');
+            if (fullName === null) return;
+            const email = prompt('Введите почту');
+            if (email === null) return;
+            const parts = fullName.trim().split(' ');
+            const firstName = parts[0] || '';
+            const lastName = parts.slice(1).join(' ') || '';
+            window.userData = { firstName, lastName, email };
+            console.log('Вошёл:', window.userData);
+            alert('Вход выполнен!');
+            if (document.getElementById('profileDialog').open) {
+                updateProfileDialog();
+            }
+        };
+
+        //  2. Профиль (диалог) 
+        window.showProfile = function() {
+            const dialog = document.getElementById('profileDialog');
+            const content = document.getElementById('profileContent');
+            const actionBtn = document.getElementById('profileActionBtn');
+
+            if (window.userData && window.userData.email) {
+                const name = (window.userData.firstName || '') + ' ' + (window.userData.lastName || '');
+                content.innerHTML = `
+                    <p><strong>Имя:</strong> ${name.trim() || 'Не указано'}</p>
+                    <p><strong>Почта:</strong> ${window.userData.email}</p>
+                `;
+                actionBtn.textContent = 'Выйти';
+                actionBtn.dataset.action = 'logout';
+            } else {
+                content.innerHTML = `<p>Вы не авторизованы.</p>`;
+                actionBtn.textContent = 'Вход';
+                actionBtn.dataset.action = 'login';
+            }
+            dialog.showModal();
+        };
+
+        window.profileAction = function() {
+            const action = document.getElementById('profileActionBtn').dataset.action;
+            if (action === 'logout') {
+                window.userData = {};
+                alert('Вы вышли из профиля.');
+                document.getElementById('profileDialog').close();
+            } else if (action === 'login') {
+                document.getElementById('profileDialog').close();
+                window.login();
+                setTimeout(() => window.showProfile(), 100);
+            }
+        };
+
+        window.updateProfileDialog = function() {
+            if (document.getElementById('profileDialog').open) {
+                window.showProfile();
+            }
+        };
+
+        //  3. Календарь (Vue 3 Composition API) 
+        const { createApp, ref, computed } = Vue;
+
+        const calendarApp = createApp({
+            setup() {
+                const currentMonth = ref(new Date().getMonth());
+                const currentYear = ref(new Date().getFullYear());
+
+                const monthName = computed(() => {
+                    return new Date(currentYear.value, currentMonth.value)
+                        .toLocaleString('ru', { month: 'long' });
+                });
+
+                const year = computed(() => currentYear.value);
+
+                const daysInMonth = computed(() => {
+                    return new Date(currentYear.value, currentMonth.value + 1, 0).getDate();
+                });
+
+                const firstDayIndex = computed(() => {
+                    const day = new Date(currentYear.value, currentMonth.value, 1).getDay();
+                    return day === 0 ? 6 : day - 1;
+                });
+
+                const weeks = computed(() => {
+                    const totalDays = daysInMonth.value;
+                    const firstDay = firstDayIndex.value;
+                    const daysArray = [];
+                    for (let i = 0; i < firstDay; i++) {
+                        daysArray.push(null);
+                    }
+                    for (let i = 1; i <= totalDays; i++) {
+                        daysArray.push(i);
+                    }
+                    const weeks = [];
+                    for (let i = 0; i < daysArray.length; i += 7) {
+                        weeks.push(daysArray.slice(i, i + 7));
+                    }
+                    return weeks;
+                });
+
+                const prevMonth = () => {
+                    if (currentMonth.value === 0) {
+                        currentMonth.value = 11;
+                        currentYear.value--;
+                    } else {
+                        currentMonth.value--;
+                    }
+                };
+
+                const nextMonth = () => {
+                    if (currentMonth.value === 11) {
+                        currentMonth.value = 0;
+                        currentYear.value++;
+                    } else {
+                        currentMonth.value++;
+                    }
+                };
+
+                return {
+                    currentMonth,
+                    currentYear,
+                    monthName,
+                    year,
+                    weeks,
+                    prevMonth,
+                    nextMonth
+                };
+            }
+        });
+
+        calendarApp.mount('#calendar-app');
+    </script>
+</body>
+</html>
+
+
+___________________________________________________
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сервис бронирования ресурсов</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+    <!-- главная страница -->
+    <div class="main">
+        <div class="central">
+            <img src="img/Group (1).png" alt="Логотип СБР" class="logo">
+            <h1 class="site-title">СБР</h1>
+            <h3 class="site-subtitle">Сервис бронирования<br> ресурсов</h3>
+        </div>
+        <!-- Кнопки вход и регистрация -->
+        <div class="auth-buttons">
+            <button class="btn btn-login" onclick="login()">Вход</button>
+            <button class="btn btn-register" onclick="register()">Регистрация</button>
+        </div>
+        <div class="description">
+            <p>Рыбатекст используется дизайнерами, проектировщиками и фронтендерами, 
+                когда нужно быстро заполнить макеты или прототипы содержимым. 
+                Это тестовый контент, который не должен нести никакого смысла, 
+                лишь показать наличие самого текста или продемонстрировать типографику в деле.</p>
+        </div>
+        <!-- навигация -->
+        <nav class="nav-menu">
+            <img src="img/Group.png" alt="Логотип в навигации" class="nav-logo">
+            <div class="nav-links">
+                <a href="#" class="nav-link">Аппаратура</a>
+                <a href="index.html" class="nav-link">Люди</a>
+                <a href="space.html" class="nav-link active">Пространство</a>
+                <a href="javascript:void(0)" class="nav-link profile-link" id="profile-link" onclick="showProfile()">Профиль</a>
+                <img src="img/3c3d65c74e500a0479ba179c5a276651291f5be8.png" alt="Ваш аватар" class="avatar">
+            </div>
+            <!-- диалог профиля -->
+            <dialog id="profileDialog" class="profile-dialog">
+                <div id="profileContent" class="profile-content"></div>
+                <div style="margin-top:10px;">
+                    <button id="profileActionBtn" class="btn profile-action-btn" onclick="profileAction()"></button>
+                    <button class="btn btn-close" onclick="document.getElementById('profileDialog').close()">Закрыть</button>
+                </div>
+            </dialog>
+        </nav>
+    </div>
+    <!-- Комната 1: Коворкинг ИРНИТУ -->
+    <table class="room-schedule">
+    <tr>
+        <td colspan="6" rowspan="3" class="room-image">
+        <img src="img/KOWORK.png" alt="Коворкинг ИРНИТУ" class="room-img">
+        <div class="image-buttons">
+            <button class="btn btn-photo">Фото</button>
+            <button class="btn btn-info">Информация</button>
+        </div>
+        <div class="room-name">Коворкинг ИРНИТУ</div>
+        </td>
+        <td class="empty-cell"></td>
+    </tr>
+    <tr><td class="empty-cell"></td></tr>
+    <tr><td class="empty-cell"></td></tr>
+    <tr>
+        <td class="time-slot">8:00-9:00</td>
+        <td class="time-slot">9:00-10:00</td>
+        <td class="time-slot">10:00-11:00</td>
+        <td class="time-slot">11:00-12:00</td>
+        <td class="time-slot">12:00-13:00</td>
+        <td class="time-slot">13:00-14:00</td>
+        <td class="btn-cell"><button class="btn btn-book" onclick="openBookingModal()">Забронировать</button></td>
+    </tr>
+    <tr>
+        <td class="time-slot">14:00-15:00</td>
+        <td class="time-slot">15:00-16:00</td>
+        <td class="time-slot">16:00-17:00</td>
+        <td class="time-slot">17:00-18:00</td>
+        <td class="time-slot">18:00-19:00</td>
+        <td class="time-slot">19:00-20:00</td>
+        <td class="btn-cell"><button class="btn btn-detail">Подробнее</button></td>
+    </tr>
+    </table>
+
+    <!-- Комната 2: Переговорная ИРНИТУ -->
+    <table class="room-schedule">
+    <tr>
+        <td colspan="6" rowspan="3" class="room-image">
+        <img src="img/tetatet.png" alt="Переговорная ИРНИТУ" class="room-img">
+        <div class="image-buttons">
+            <button class="btn btn-photo">Фото</button>
+            <button class="btn btn-info">Информация</button>
+        </div>
+        <div class="room-name">Переговорная ИРНИТУ</div>
+        </td>
+        <td class="empty-cell"></td>
+    </tr>
+    <tr><td class="empty-cell"></td></tr>
+    <tr><td class="empty-cell"></td></tr>
+    <tr>
+        <td class="time-slot">8:00-9:00</td>
+        <td class="time-slot">9:00-10:00</td>
+        <td class="time-slot">10:00-11:00</td>
+        <td class="time-slot">11:00-12:00</td>
+        <td class="time-slot">12:00-13:00</td>
+        <td class="time-slot">13:00-14:00</td>
+        <td class="btn-cell"><button class="btn btn-book" onclick="openBookingModal()">Забронировать</button></td>
+    </tr>
+    <tr>
+        <td class="time-slot">14:00-15:00</td>
+        <td class="time-slot">15:00-16:00</td>
+        <td class="time-slot">16:00-17:00</td>
+        <td class="time-slot">17:00-18:00</td>
+        <td class="time-slot">18:00-19:00</td>
+        <td class="time-slot">19:00-20:00</td>
+        <td class="btn-cell"><button class="btn btn-detail">Подробнее</button></td>
+    </tr>
+    </table>
+
+    <!-- Модальное окно для бронирования -->
+    <dialog id="bookingModal" class="modal">
+    <div class="modal-content">
+        <h2 class="modal-title">Бронирование</h2>
+        <div class="modal-body">
+        <div class="form-group">
+            <label class="form-label">Название мероприятия</label>
+            <input type="text" id="bookingName" class="form-control" placeholder="Введите название мероприятия">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Выберите время</label>
+            <div class="time-slots">
+            <button class="time-slot" data-btime="8.00 - 9.00">8.00 - 9.00</button>
+            <button class="time-slot" data-btime="09.00 - 10.00">09.00 - 10.00</button>
+            <button class="time-slot" data-btime="10.00 - 11.00">10.00 - 11.00</button>
+            <button class="time-slot" data-btime="11.00 - 12.00">11.00 - 12.00</button>
+            <button class="time-slot" data-btime="12.00 - 13.00">12.00 - 13.00</button>
+            <button class="time-slot" data-btime="13.00 - 14.00">13.00 - 14.00</button>
+            <button class="time-slot" data-btime="17.00 - 18.00">17.00 - 18.00</button>
+            <button class="time-slot" data-btime="18.00 - 19.00">18.00 - 19.00</button>
+            <button class="time-slot" data-btime="19.00 - 20.00">19.00 - 20.00</button>
+            </div>
+            <input type="hidden" id="selectedBookingTime" value="">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Ответственные лица</label>
+            <select id="bookingResponsible" class="form-control">
+            <option value="">Выберите...</option>
+            <option value="Иван Иванов">Иван Иванов</option>
+            <option value="Анастасия Ремогузина">Анастасия Ремогузина</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Дополнительная информация</label>
+            <textarea id="bookingExtra" class="form-control" placeholder="Дополнительная информация" rows="3" cols="40"></textarea>
+        </div>
+        </div>
+        <div class="modal-footer">
+        <button class="btn btn-primary" onclick="submitBooking()">Забронировать</button>
+        <button class="btn btn-secondary" onclick="closeBookingModal()">Отменить</button>
+        </div>
+    </div>
+    </dialog>
+
+    <script>
+    // ------ Модалка бронирования ------
+    function openBookingModal() {
+        document.getElementById('bookingModal').showModal();
+        document.getElementById('bookingName').value = '';
+        document.getElementById('selectedBookingTime').value = '';
+        document.getElementById('bookingExtra').value = '';
+        document.getElementById('bookingResponsible').value = '';
+        document.querySelectorAll('.time-slot[data-btime]').forEach(btn => btn.style.background = '');
+    }
+
+    function closeBookingModal() {
+        document.getElementById('bookingModal').close();
+    }
+
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('time-slot') && e.target.dataset.btime) {
+        document.querySelectorAll('.time-slot[data-btime]').forEach(b => b.style.background = '');
+        e.target.style.background = '#d0e6ff';
+        document.getElementById('selectedBookingTime').value = e.target.dataset.btime;
+        }
+    });
+
+    function submitBooking() {
+        const name = document.getElementById('bookingName').value.trim();
+        const time = document.getElementById('selectedBookingTime').value;
+        const person = document.getElementById('bookingResponsible').value;
+        const extra = document.getElementById('bookingExtra').value.trim();
+
+        if (!name || !time) {
+        alert('Заполните название и выберите время!');
+        return;
+        }
+
+        console.log('Бронирование:', { name, time, person, extra });
+        alert('Бронирование создано (в консоли)');
+        closeBookingModal();
+    }
+    </script>
+    <!-- Модальное окно ошибки -->
+    <dialog id="errorModal" class="modal modal-error">
+    <div class="modal-content" style="max-width: 400px;">
+        <h2 class="modal-title" style="color: #d32f2f;">Ошибка</h2>
+        <div class="modal-body">
+        <p id="errorMessage" class="error-message" style="font-size: 16px;">Что-то пошло не так.</p>
+        </div>
+        <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('errorModal').close()">Закрыть</button>
+        </div>
+    </div>
+    </dialog>
+
+    <script>
+    // Глобальная функция для показа ошибки
+    window.showError = function(message) {
+        document.getElementById('errorMessage').textContent = message;
+        document.getElementById('errorModal').showModal();
+    };
+
+    // Пример использования: добавляем проверку в submitBooking
+    // Замените существующую функцию submitBooking на эту
+    window.submitBooking = function() {
+        const name = document.getElementById('bookingName').value.trim();
+        const time = document.getElementById('selectedBookingTime').value;
+        const person = document.getElementById('bookingResponsible').value;
+        const extra = document.getElementById('bookingExtra').value.trim();
+
+        if (!name || !time) {
+        showError('Заполните название и выберите время!');
+        return;
+        }
+
+        // Имитация проверки конфликта (например, если время уже занято)
+        // Здесь можно добавить реальную проверку по списку броней
+        const isConflict = false; // заглушка
+        if (isConflict) {
+        showError('Это время уже занято. Выберите другое.');
+        return;
+        }
+
+        console.log('Бронирование:', { name, time, person, extra });
+        alert('Бронирование создано (в консоли)');
+        closeBookingModal();
+    };
+
+    // Аналогично можно обновить submitNewEvent, если нужно
+    window.submitNewEvent = function() {
+        const name = document.getElementById('eventName').value.trim();
+        const time = document.getElementById('selectedTime').value;
+        const person = document.getElementById('responsiblePerson').value;
+        const extra = document.getElementById('extraInfo').value.trim();
+
+        if (!name || !time) {
+        showError('Заполните название и выберите время!');
+        return;
+        }
+
+        console.log('Новое мероприятие:', { name, time, person, extra });
+        alert('Мероприятие добавлено (в консоли)');
+        closeNewEventModal();
+    };
+    </script>
+    <!-- ОДИН ОБЩИЙ СКРИПТ (регистрация, вход, профиль, календарь) -->
+    <script>
+        //  1. Данные пользователя и функции входа/регистрации 
+        window.userData = {};
+
+        window.register = function() {
+            const firstName = prompt('Введите имя');
+            if (firstName === null) return;
+            const lastName = prompt('Введите фамилию');
+            if (lastName === null) return;
+            const email = prompt('Введите почту');
+            if (email === null) return;
+            window.userData = { firstName, lastName, email };
+            console.log('Зарегистрирован:', window.userData);
+            alert('Регистрация успешна!');
+            if (document.getElementById('profileDialog').open) {
+                updateProfileDialog();
+            }
+        };
+
+        window.login = function() {
+            const fullName = prompt('Введите имя и фамилию (через пробел)');
+            if (fullName === null) return;
+            const email = prompt('Введите почту');
+            if (email === null) return;
+            const parts = fullName.trim().split(' ');
+            const firstName = parts[0] || '';
+            const lastName = parts.slice(1).join(' ') || '';
+            window.userData = { firstName, lastName, email };
+            console.log('Вошёл:', window.userData);
+            alert('Вход выполнен!');
+            if (document.getElementById('profileDialog').open) {
+                updateProfileDialog();
+            }
+        };
+
+        //  2. Профиль (диалог) 
+        window.showProfile = function() {
+            const dialog = document.getElementById('profileDialog');
+            const content = document.getElementById('profileContent');
+            const actionBtn = document.getElementById('profileActionBtn');
+
+            if (window.userData && window.userData.email) {
+                const name = (window.userData.firstName || '') + ' ' + (window.userData.lastName || '');
+                content.innerHTML = `
+                    <p><strong>Имя:</strong> ${name.trim() || 'Не указано'}</p>
+                    <p><strong>Почта:</strong> ${window.userData.email}</p>
+                `;
+                actionBtn.textContent = 'Выйти';
+                actionBtn.dataset.action = 'logout';
+            } else {
+                content.innerHTML = `<p>Вы не авторизованы.</p>`;
+                actionBtn.textContent = 'Вход';
+                actionBtn.dataset.action = 'login';
+            }
+            dialog.showModal();
+        };
+
+        window.profileAction = function() {
+            const action = document.getElementById('profileActionBtn').dataset.action;
+            if (action === 'logout') {
+                window.userData = {};
+                alert('Вы вышли из профиля.');
+                document.getElementById('profileDialog').close();
+            } else if (action === 'login') {
+                document.getElementById('profileDialog').close();
+                window.login();
+                setTimeout(() => window.showProfile(), 100);
+            }
+        };
+
+        window.updateProfileDialog = function() {
+            if (document.getElementById('profileDialog').open) {
+                window.showProfile();
+            }
+        };
+
+        //  3. Календарь (Vue 3 Composition API) 
+        const { createApp, ref, computed } = Vue;
+
+        const calendarApp = createApp({
+            setup() {
+                const currentMonth = ref(new Date().getMonth());
+                const currentYear = ref(new Date().getFullYear());
+
+                const monthName = computed(() => {
+                    return new Date(currentYear.value, currentMonth.value)
+                        .toLocaleString('ru', { month: 'long' });
+                });
+
+                const year = computed(() => currentYear.value);
+
+                const daysInMonth = computed(() => {
+                    return new Date(currentYear.value, currentMonth.value + 1, 0).getDate();
+                });
+
+                const firstDayIndex = computed(() => {
+                    const day = new Date(currentYear.value, currentMonth.value, 1).getDay();
+                    return day === 0 ? 6 : day - 1;
+                });
+
+                const weeks = computed(() => {
+                    const totalDays = daysInMonth.value;
+                    const firstDay = firstDayIndex.value;
+                    const daysArray = [];
+                    for (let i = 0; i < firstDay; i++) {
+                        daysArray.push(null);
+                    }
+                    for (let i = 1; i <= totalDays; i++) {
+                        daysArray.push(i);
+                    }
+                    const weeks = [];
+                    for (let i = 0; i < daysArray.length; i += 7) {
+                        weeks.push(daysArray.slice(i, i + 7));
+                    }
+                    return weeks;
+                });
+
+                const prevMonth = () => {
+                    if (currentMonth.value === 0) {
+                        currentMonth.value = 11;
+                        currentYear.value--;
+                    } else {
+                        currentMonth.value--;
+                    }
+                };
+
+                const nextMonth = () => {
+                    if (currentMonth.value === 11) {
+                        currentMonth.value = 0;
+                        currentYear.value++;
+                    } else {
+                        currentMonth.value++;
+                    }
+                };
+
+                return {
+                    currentMonth,
+                    currentYear,
+                    monthName,
+                    year,
+                    weeks,
+                    prevMonth,
+                    nextMonth
+                };
+            }
+        });
+
+        calendarApp.mount('#calendar-app');
+    </script>
+</body>
+</html>
+
+
+
+
+__________________________________________________-
+
+
+
+html {
+    box-sizing: border-box;
+}
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,700;6..12,800&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Nunito Sans', sans-serif;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 400;
+}
+.logo {
+    width: 210px;
+}
+.central h1, .central h3 {
+    margin: 0;
+}
+.site-title {
+    font-size: 6rem;
+}
+.site-subtitle {
+    font-size: 2.5rem;
+    max-width: 796px;
+    margin: 0 auto;
+}
+.main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    background-image: url('../img/image\ 3.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    align-items: center;
+}
+
+.central {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    color: white;
+    text-align: left;
+    padding: 20px 0;
+    margin-top: 10vh;
+}
+
+.description {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 0 20px;
+    font-size: 1.1rem;
+}
+
+.avatar {
+    width: 30px;
+}
+
+/* ===== НАВИГАЦИЯ ===== */
+.nav-menu {
+    background: rgba(21, 21, 20, 0.7);
+    width: 100%;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+}
+
+.nav-logo {
+    margin-right: auto;
+    width: 40px;
+    height: auto;
+}
+
+.nav-links {
+    display: flex;
+    gap: 30px;
+    justify-content: flex-end;
+    width: 50%;
+    margin-left: auto;
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 400;
+    transition: color 0.2s;
+}
+.nav-link:hover {
+    color: #ccc;
+}
+.nav-link.active {
+    text-decoration: underline;
+}
+
+/* ===== КНОПКИ ВХОД / РЕГИСТРАЦИЯ ===== */
+.auth-buttons {
+    margin-top: 60px;
+    margin-bottom: 20px;
+}
+.auth-buttons .btn {
+    font-size: 1.3rem;
+    padding: 16px 48px;
+    border-radius: 60px;
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+.auth-buttons .btn:hover {
+    background-color: #f2f2f2;
+    transform: scale(1.02);
+}
+.auth-buttons .btn:active {
+    transform: scale(0.97);
+}
+
+/* ===== КАРТОЧКИ ЛЮДЕЙ ===== */
+.people-grid {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+.people-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.person {
+    display: flex;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    transition: transform 0.2s;
+}
+.person:hover {
+    transform: translateY(-3px);
+}
+
+.person-photo-wrapper {
+    flex-shrink: 0;
+    width: 140px;
+    display: flex;
+    flex-direction: column;
+}
+
+.person-photo {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+}
+
+.person-profession {
+    display: block;
+    background: #ffffff;
+    color: #000000;
+    padding: 2px 10px;
+    font-size: 0.7rem;
+    font-weight: 400;
+    text-align: center;
+    border-top: 1px solid #eee;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.person-info {
+    flex: 1;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.person-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 2px 0;
+    color: #1a1a1a;
+}
+
+.person-description {
+    font-size: 0.75rem;
+    color: #555;
+    margin: 0 0 10px 0;
+    line-height: 1.4;
+}
+
+.person-actions .btn {
+    flex: 1 1 auto;
+    min-width: 60px;
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    border-radius: 30px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    text-align: center;
+}
+
+.person-actions .btn-invite {
+    background: rgba(67, 113, 107, 1);
+    color: white;
+}
+.person-actions .btn-invite:hover {
+    background: rgba(50, 90, 85, 1);
+}
+
+.person-actions .btn-detail {
+    background: #ffffff;
+    color: #1a1a1a;
+}
+.person-actions .btn-detail:hover {
+    background: #f2f2f2;
+}
+
+.btn-invite {
+    background: rgba(67, 113, 107, 1);
+    color: white;
+}
+.btn-invite:hover {
+    background: rgba(50, 90, 85, 1);
+}
+.btn-detail {
+    background: #ffffff;
+    color: #1a1a1a;
+}
+.btn-detail:hover {
+    background: #f2f2f2;
+}
+
+/* ===== КАЛЕНДАРЬ ===== */
+.calendar {
+    width: 460px;
+    height: 364px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.calendar-nav {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 0 8px;
+    color: #333;
+}
+
+.calendar-month {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: none;
+}
+
+.calendar-table th,
+.calendar-table td {
+    padding: 6px 4px;
+    text-align: center;
+    border: none;
+    font-weight: 400;
+    font-size: 0.9rem;
+}
+
+.calendar-weekday {
+    font-weight: 600;
+    color: #333;
+}
+
+.calendar-cell {
+    background-color: rgba(242, 242, 242, 1);
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+/* выходные – красный текст */
+.calendar-table tbody td:nth-child(6),
+.calendar-table tbody td:nth-child(7) {
+    color: #d32f2f;
+}
+
+/* текущий день */
+.calendar-cell.today {
+    background-color: rgba(67, 113, 107, 1);
+    color: white;
+    border-radius: 8px;
+}
+
+.empty {
+    background: transparent !important;
+    color: transparent;
+}
+
+/* ===== АКТИВНЫЕ ПРИГЛАШЕНИЯ ===== */
+.invitations {
+    width: 460px;
+    height: 200px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.invitations-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 6px 0;
+    color: #1a1a1a;
+}
+
+.invitation {
+    background: #f9f9f9;
+    border-radius: 10px;
+    padding: 6px 12px;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.invitation:last-child {
+    margin-bottom: 0;
+}
+
+.invitation-title {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin: 0 0 4px 0;
+    color: #1a1a1a;
+}
+
+/* Параметры — в одну строку */
+.invitation-details {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.invitation-time,
+.invitation-person,
+.invitation-role {
+    background: rgba(134, 174, 170, 1);
+    color: white;
+    padding: 2px 10px;
+    border-radius: 16px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+.invitation-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 2px;
+}
+
+.invitation .btn {
+    padding: 4px 14px;
+    border-radius: 30px;
+    border: none;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.invitation .btn-detail {
+    background: rgba(67, 113, 107, 1);
+    color: white;
+}
+.invitation .btn-detail:hover {
+    background: rgba(50, 90, 85, 1);
+}
+
+.invitation .btn-decline {
+    background: #f0f0f0;
+    color: #333;
+}
+.invitation .btn-decline:hover {
+    background: #e0e0e0;
+}
+
+/* ===== ПОИСК, ФИЛЬТР, КНОПКА ДОБАВИТЬ ===== */
+.search-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px 0 20px;
+    flex-wrap: wrap;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ffffff;
+    border-radius: 30px;
+    overflow: hidden;
+    background: rgba(242, 242, 242, 1);
+    transition: border 0.2s;
+}
+.search-bar:focus-within {
+    border-color: #007bff;
+}
+
+.search-input {
+    padding: 8px 16px;
+    border: none;
+    font-size: 0.9rem;
+    outline: none;
+    flex: 1;
+    min-width: 150px;
+    background: transparent;
+}
+
+.search-btn {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.search-btn:hover {
+    background: rgba(242, 242, 242, 1);
+}
+
+.filter-btn {
+    padding: 8px 20px;
+    border: 1px solid #ffffff;
+    border-radius: 30px;
+    background: rgba(242, 242, 242, 1);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+.filter-btn:hover {
+    background: #f0f0f0;
+}
+
+.add-btn {
+    padding: 8px 20px;
+    border: 1px solid #ffffff;
+    border-radius: 30px;
+    background: rgba(242, 242, 242, 1);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+.add-btn:hover {
+    background: rgba(242, 242, 242, 1);
+}
+
+/* ===== ОСНОВНАЯ СЕТКА: люди слева, календарь и приглашения справа ===== */
+.main-content {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;           /* уменьшили расстояние между колонками */
+    padding: 20px 10px;  /* уменьшили отступы по бокам, чтобы контент начинался ближе к краям */
+    align-items: flex-start;
+    width: 100%;
+    /* убрали max-width и margin: 0 auto, чтобы блок занимал всю ширину */
+}
+
+.people-section {
+    flex: 1;
+    min-width: 0;
+}
+
+.right-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;           /* уменьшили расстояние между календарём и приглашениями */
+    flex-shrink: 0;
+    width: 460px;
+}
+
+/* Календарь и приглашения уже имеют свои размеры, убираем лишние margin */
+.calendar {
+    margin: 0;
+    width: 100%;
+}
+
+.invitations {
+    margin: 0;
+    width: 100%;
+}
+
+/* ===== ВТОРАЯ СТРАНИЦА (КОМНАТЫ) ===== */
+.room-schedule {
+    width: 100%;
+    max-width: 900px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.room-schedule td {
+    padding: 8px 12px;
+    border: 1px solid #eee;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.room-image {
+    position: relative;
+    padding: 0;
+    text-align: center;
+    height: 380px;
+    overflow: hidden;
+}
+
+.room-img {
+    width: 1204px;
+    height: 380px;
+    border-radius: 30px;
+    object-fit: cover;
+    display: block;
+}
+
+.image-buttons {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+}
+
+.image-buttons .btn {
+    padding: 6px 24px;
+    border-radius: 30px;
+    border: none;
+    background: rgba(255, 255, 255, 0.85);
+    color: #000000;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    backdrop-filter: blur(4px);
+}
+.image-buttons .btn:hover {
+    background: rgba(255, 255, 255, 1);
+}
+
+.room-name {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    white-space: nowrap;
+}
+
+.time-slot {
+    background: rgba(220, 231, 230, 1);
+    color: #1a1a1a;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 400;
+}
+
+.btn-cell {
+    background: #f9f9f9;
+}
+
+.btn-cell .btn {
+    padding: 6px 14px;
+    border-radius: 30px;
+    border: none;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-cell .btn-book {
+    background: rgba(67, 113, 107, 1);
+    color: white;
+}
+.btn-cell .btn-book:hover {
+    background: rgba(50, 90, 85, 1);
+}
+
+.btn-cell .btn-detail {
+    background: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #ddd;
+}
+.btn-cell .btn-detail:hover {
+    background: #f0f0f0;
+}
+
+.empty-cell {
+    background: #f9f9f9;
+}
+
+/* ===== ПРОФИЛЬ (ДИАЛОГ) ===== */
+.profile-dialog {
+    width: 173px;
+    height: 152px;
+    border: none;
+    border-radius: 16px;
+    padding: 16px;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    position: absolute;
+    top: 100%;           /* сразу под ссылкой */
+    right: 0;            /* выравнивание по правому краю ссылки */
+    margin-top: 4px;     /* небольшой отступ от ссылки */
+}
+
+.profile-link {
+    position: relative;
+}
+
+.profile-dialog::backdrop {
+    background: rgba(0,0,0,0.3);
+}
+
+.profile-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 8px;
+}
+
+.profile-content p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #333;
+    text-align: center;
+    word-break: break-all;
+}
+
+.profile-content strong {
+    font-weight: 600;
+}
+
+.profile-action-btn {
+    width: 100%;
+    padding: 6px 16px;
+    border-radius: 30px;
+    border: none;
+    background: rgba(67, 113, 107, 1);
+    color: white;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-top: 4px;
+}
+.profile-action-btn:hover {
+    background: rgba(50, 90, 85, 1);
+    transform: scale(1.02);
+}
+.profile-action-btn:active {
+    transform: scale(0.97);
+}
+
+.btn-close {
+    width: 100%;
+    padding: 4px 16px;
+    border-radius: 30px;
+    border: none;
+    background: #f0f0f0;
+    color: #333;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 4px;
+}
+.btn-close:hover {
+    background: #e0e0e0;
+}
+/* ===== МОДАЛЬНЫЕ ОКНА (БРОНИРОВАНИЕ И НОВОЕ МЕРОПРИЯТИЕ) ===== */
+.modal {
+    border: none;
+    border-radius: 16px;
+    padding: 24px 28px;
+    max-width: 460px;
+    width: 90%;
+    background: #ffffff;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.modal::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.modal-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 4px 0;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-control {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border 0.2s;
+    background: #fff;
+}
+.form-control:focus {
+    border-color: rgba(67, 113, 107, 1);
+}
+
+/* Кнопки выбора времени */
+.time-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.time-slot {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 20px;
+    background: rgba(220, 231, 230, 1);  /* время */
+    color: #1a1a1a;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.time-slot:hover {
+    background: rgba(200, 215, 210, 1);
+}
+.time-slot.selected {
+    background: rgba(67, 113, 107, 1);
+    color: white;
+}
+
+/* Параметры (ответственные лица) — белый текст на фоне rgba(134, 174, 170, 1) */
+select.form-control {
+    background: rgba(134, 174, 170, 1);
+    color: white;
+    border: none;
+    appearance: none;
+}
+select.form-control option {
+    background: white;
+    color: #333;
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 60px;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+}
+
+/* Футер с кнопками */
+.modal-footer {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    justify-content: flex-end;
+}
+
+.modal-footer .btn {
+    padding: 8px 24px;
+    border-radius: 30px;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.modal-footer .btn-primary {
+    background: rgba(67, 113, 107, 1);
+    color: white;
+}
+.modal-footer .btn-primary:hover {
+    background: rgba(50, 90, 85, 1);
+    transform: scale(1.02);
+}
+.modal-footer .btn-primary:active {
+    transform: scale(0.97);
+}
+
+.modal-footer .btn-secondary {
+    background: #f0f0f0;
+    color: #333;
+}
+.modal-footer .btn-secondary:hover {
+    background: #e0e0e0;
+}
